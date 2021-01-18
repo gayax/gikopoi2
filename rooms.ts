@@ -519,8 +519,43 @@ export const rooms: { [roomId: string]: Room } = {
         streamSlotCount: 0,
         secret: true
     },
-
+    yoshinoya: {
+        id: "yoshinoya",
+        scale: 2.26,
+        size: { x: 20, y: 20 },
+        originCoordinates: { x: 7, y: 701 },
+        spawnPoint: { x: 0, y: 0, direction: "right" },
+        backgroundImageUrl: "rooms/yoshinoya/yoshinoya.svg",
+        backgroundColor: "#c0c0c0",
+        objects: [
+        ],
+        sit: [
+            { x: 0, y: 2 },
+            { x: 1, y: 2 },
+            { x: 2, y: 2 },
+            { x: 3, y: 2 },
+            { x: 4, y: 2 },
+            { x: 6, y: 3 },
+            { x: 6, y: 4 },
+            { x: 6, y: 5 },
+            { x: 0, y: 6 },
+            { x: 1, y: 6 },
+            { x: 2, y: 6 },
+            { x: 3, y: 6 },
+            { x: 4, y: 6 },
+        ],
+        blocked: [
+            // { x: 4, y: 3 }
+        ],
+        forbiddenMovements: [
+        ],
+        doors: [
+            // { x: 8, y: 0, targetRoomId: "NOT_READY_YET", targetX: 0, targetY: 0 },
+        ],
+        streamSlotCount: 0,
+        secret: false
+    },
 }
 
-export const defaultRoom = rooms.admin_st
+export const defaultRoom = rooms.yoshinoya
 
