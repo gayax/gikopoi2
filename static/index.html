@@ -116,21 +116,12 @@
                     v-on:keydown="handleMessageInputKeydown($event)" tabindex="2" maxlength="500"></input>
                 <button id="send-button" v-on:click="sendMessageToServer" tabindex="3">{{ $t("ui.button_send")
                     }}</button>
-                <button v-on:click="currentRoom.originCoordinates.x++">+</button>
-                <button v-on:click="currentRoom.originCoordinates.x--">-</button>
-                {{ currentRoom.originCoordinates && currentRoom.originCoordinates.x }}
-                <button v-on:click="currentRoom.originCoordinates.y++">+</button>
-                <button v-on:click="currentRoom.originCoordinates.y--">-</button>
-                {{ currentRoom.originCoordinates && currentRoom.originCoordinates.y }}
-                <button v-on:click="currentRoom.backgroundOffset.x++">+</button>
-                <button v-on:click="currentRoom.backgroundOffset.x--">-</button>
-                {{ currentRoom.backgroundOffset && currentRoom.backgroundOffset.x }}
-                <button v-on:click="currentRoom.backgroundOffset.y++">+</button>
-                <button v-on:click="currentRoom.backgroundOffset.y--">-</button>
-                {{ currentRoom.backgroundOffset && currentRoom.backgroundOffset.y }}
-                <button v-on:click="currentRoom.scale *= 1.01">+</button>
-                <button v-on:click="currentRoom.scale *= 0.99">-</button>
-                {{ Math.round(currentRoom.scale * 100) / 100 }}
+                <button v-on:click="currentRoom.objects[1].xOffset++">+</button>
+                <button v-on:click="currentRoom.objects[1].xOffset--">-</button>
+                x: {{ currentRoom.objects[1].xOffset }}
+                <button v-on:click="currentRoom.objects[1].yOffset++">+</button>
+                <button v-on:click="currentRoom.objects[1].yOffset--">-</button>
+                y: {{ currentRoom.objects[1].yOffset }}
                 <button id="toggle-sound" v-on:click="toggleSound">
                     {{ $t(isSoundEnabled ? "ui.button_toggle_sound_on" : "ui.button_toggle_sound_off") }}
                 </button>

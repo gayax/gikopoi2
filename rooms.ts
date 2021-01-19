@@ -541,6 +541,8 @@ export const rooms: { [roomId: string]: Room } = {
         backgroundImageUrl: "rooms/yoshinoya/yoshinoya.svg",
         backgroundColor: "#c0c0c0",
         objects: [
+            { x: 0, y: 4, url: "counter-left.svg", scale: 1, xOffset: -43, yOffset: 119 },
+            { x: 6, y: 6, url: "counter-right.svg", scale: 1, xOffset: -281, yOffset: -1 },
         ],
         sit: [
             { x: 0, y: 2 },

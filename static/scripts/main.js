@@ -140,8 +140,8 @@ const vueApp = new Vue({
                             o.x,
                             o.y
                         );
-                        o.physicalPositionX = x + (o.xOffset || 0);
-                        o.physicalPositionY = y + (o.yOffset || 0);
+                        o.physicalPositionX = x;
+                        o.physicalPositionY = y;
                         this.isRedrawRequired = true;
                     }
                 );
@@ -488,7 +488,7 @@ const vueApp = new Vue({
 
                 context.fillStyle = this.currentRoom.backgroundColor;
                 context.fillRect(0, 0, this.canvasDimensions.w, this.canvasDimensions.h);
-                
+
                 const canvasOffset = this.getCanvasOffset();
 
                 // draw background
@@ -530,8 +530,8 @@ const vueApp = new Vue({
                     {
                         this.drawImage(
                             o.o.image,
-                            o.o.physicalPositionX + canvasOffset.x,
-                            o.o.physicalPositionY + canvasOffset.y,
+                            o.o.physicalPositionX + (o.o.xOffset || 0) + canvasOffset.x,
+                            o.o.physicalPositionY + (o.o.yOffset || 0) + canvasOffset.y,
                             this.currentRoom.scale * o.o.scale
                         );
                     } // o.type == "user"
@@ -589,8 +589,8 @@ const vueApp = new Vue({
                             );
                             context.fillText(
                                 x + "," + y,
-                                realCoord.x + 40,
-                                realCoord.y - 20
+                                realCoord.x + 40 + canvasOffset.x,
+                                realCoord.y - 20 + canvasOffset.y
                             );
                         }
                 }
