@@ -68,6 +68,8 @@ const vueApp = new Vue({
                 characters.giko.loadImages(),
                 characters.naito.loadImages(),
                 characters.funkynaito.loadImages(),
+                characters.furoshiki.loadImages(),
+                characters.naitoapple.loadImages(),
             ]);
             if (this.username === "") this.username = i18n.t("default_user_name");
 
@@ -474,25 +476,23 @@ const vueApp = new Vue({
                                 o.o.currentPhysicalPositionY - 95
                             );
 
+                            let drawFunc;
+
                             switch (o.o.direction)
                             {
-                                case "up":
-                                case "right":
-                                    this.drawHorizontallyFlippedImage(
-                                        o.o.getCurrentImage(this.currentRoom),
-                                        o.o.currentPhysicalPositionX,
-                                        o.o.currentPhysicalPositionY
-                                    );
+                                case "up": case "right":
+                                    drawFunc = o.o.character.leftFacing ? this.drawHorizontallyFlippedImage : this.drawImage
                                     break;
-                                case "down":
-                                case "left":
-                                    this.drawImage(
-                                        o.o.getCurrentImage(this.currentRoom),
-                                        o.o.currentPhysicalPositionX,
-                                        o.o.currentPhysicalPositionY
-                                    );
+                                case "down": case "left":
+                                    drawFunc = o.o.character.leftFacing ? this.drawImage : this.drawHorizontallyFlippedImage
                                     break;
                             }
+
+                            drawFunc(
+                                o.o.getCurrentImage(this.currentRoom),
+                                o.o.currentPhysicalPositionX,
+                                o.o.currentPhysicalPositionY
+                            );
                         }
 
                         o.o.spendTime(this.currentRoom);
@@ -508,9 +508,9 @@ const vueApp = new Vue({
                     for (let x = 0; x < this.currentRoom.size.x; x++)
                         for (let y = 0; y < this.currentRoom.size.y; y++)
                         {
-                            context.fillStyle = this.currentRoom.blocked.find(b => b.x == x && b.y == y) 
-                                                ? "red"
-                                                : "blue";
+                            context.fillStyle = this.currentRoom.blocked.find(b => b.x == x && b.y == y)
+                                ? "red"
+                                : "blue";
                             const realCoord = calculateRealCoordinates(
                                 this.currentRoom,
                                 x,
@@ -543,29 +543,31 @@ const vueApp = new Vue({
 
             this.steppingOnPortalToNonAvailableRoom = false;
 
-            const door = this.currentRoom.doors.find(
+            const door = Object.values(this.currentRoom.doors).find(
                 (d) =>
+                    d.target !== null &&
                     d.x == currentUser.logicalPositionX &&
                     d.y == currentUser.logicalPositionY
             );
 
             if (!door) return;
 
-            const { targetRoomId, targetX, targetY } = door;
-
-            if (targetRoomId == "NOT_READY_YET")
+            if (door.target == "NOT_READY_YET")
             {
                 this.steppingOnPortalToNonAvailableRoom = true;
                 return;
             }
-            this.changeRoom(targetRoomId, targetX, targetY);
+
+            const { roomId, doorId } = door.target;
+
+            this.changeRoom(roomId, doorId);
         },
-        changeRoom: function (targetRoomId, targetX, targetY)
+        changeRoom: function (targetRoomId, targetDoorId)
         {
             if (this.webcamStream) this.stopStreaming();
 
             this.requestedRoomChange = true;
-            this.socket.emit("user-change-room", { targetRoomId, targetX, targetY });
+            this.socket.emit("user-change-room", { targetRoomId, targetDoorId });
         },
         forcePhysicalPositionRefresh: function ()
         {
