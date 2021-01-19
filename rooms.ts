@@ -534,7 +534,7 @@ export const rooms: { [roomId: string]: Room } = {
         scale: 2.26,
         size: { x: 20, y: 20 },
         originCoordinates: { x: 7, y: 701 },
-        spawnPoint: { x: 0, y: 0, direction: "right" },
+        spawnPoint: "spawn",
         backgroundImageUrl: "rooms/yoshinoya/yoshinoya.svg",
         backgroundColor: "#c0c0c0",
         objects: [
@@ -559,9 +559,9 @@ export const rooms: { [roomId: string]: Room } = {
         ],
         forbiddenMovements: [
         ],
-        doors: [
-            // { x: 8, y: 0, targetRoomId: "NOT_READY_YET", targetX: 0, targetY: 0 },
-        ],
+        doors: {
+            spawn: { x: 0, y: 0, direction: "up", target: null }
+        },
         streamSlotCount: 0,
         secret: false
     },
