@@ -3,7 +3,7 @@ localStorage.removeItem("debug");
 
 import { characters } from "./character.js";
 import User from "./user.js";
-import { loadImage, calculateRealCoordinates, globalScale, postJson, } from "./utils.js";
+import { loadImage, calculateRealCoordinates, globalScale, postJson, BLOCK_WIDTH, BLOCK_HEIGHT } from "./utils.js";
 import { messages } from "./lang.js";
 import { RTCPeer, defaultIceConfig } from "./rtcpeer.js";
 
@@ -44,6 +44,13 @@ const vueApp = new Vue({
         areaId: "gen", // 'gen' or 'for'
         roomList: [],
         rulaRoomSelection: null,
+
+        isRedrawRequired: false,
+        isDraggingCanvas: false,
+        canvasDragStartPoint: null,
+        canvasDragOffset: null,
+        canvasOffset: { x: 0, y: 0 },
+        canvasDimensions: { w: 0, h: 0 },
 
         // Possibly redundant data:
         username: "",
@@ -106,6 +113,8 @@ const vueApp = new Vue({
             this.isLoadingRoom = true;
             const roomLoadId = this.roomLoadId = this.roomLoadId + 1;
 
+            if (this.currentRoom.needsFixedCamera)
+                this.canvasOffset = { x: 0, y: 0 }
             this.currentRoom = roomDto;
 
             this.roomid = this.currentRoom.id;
@@ -117,6 +126,7 @@ const vueApp = new Vue({
             {
                 if (this.roomLoadId != roomLoadId) return;
                 this.currentRoom.backgroundImage = image;
+                this.isRedrawRequired = true;
             });
             for (const o of this.currentRoom.objects)
             {
@@ -132,6 +142,7 @@ const vueApp = new Vue({
                         );
                         o.physicalPositionX = x + (o.xOffset || 0);
                         o.physicalPositionY = y + (o.yOffset || 0);
+                        this.isRedrawRequired = true;
                     }
                 );
             }
@@ -274,11 +285,13 @@ const vueApp = new Vue({
             {
                 if (this.isSoundEnabled) document.getElementById("login-sound").play();
                 this.addUser(user);
+                this.isRedrawRequired = true;
             });
 
             this.socket.on("server-user-left-room", (userId) =>
             {
                 if (userId != this.myUserID) delete this.users[userId];
+                this.isRedrawRequired = true;
             });
 
             this.socket.on("server-not-ok-to-stream", (reason) =>
@@ -402,9 +415,49 @@ const vueApp = new Vue({
             context.fillStyle = "blue";
             context.fillText(text, x, y);
         },
+        detectCanvasResize: function (canvasElement, context)
+        {
+            if (this.canvasDimensions.w != canvasElement.offsetWidth ||
+                this.canvasDimensions.h != canvasElement.offsetHeight)
+            {
+                this.canvasDimensions.w = canvasElement.offsetWidth;
+                this.canvasDimensions.h = canvasElement.offsetHeight;
+
+                context.canvas.width = this.canvasDimensions.w;
+                context.canvas.height = this.canvasDimensions.h;
+            }
+        },
+        getCanvasOffset: function ()
+        {
+            if (this.currentRoom.needsFixedCamera)
+                return { x: 0, y: 0 }
+
+            const canvasOffset = {
+                x: this.canvasOffset.x,
+                y: this.canvasOffset.y
+            };
+
+            if (this.isDraggingCanvas)
+            {
+                canvasOffset.x += this.canvasDragOffset.x;
+                canvasOffset.y += this.canvasDragOffset.y;
+            }
+
+            if (this.myUserID in this.users)
+            {
+                const user = this.users[this.myUserID]
+
+                canvasOffset.x -= user.currentPhysicalPositionX - (this.canvasDimensions.w / 2 - BLOCK_WIDTH / 4);
+                canvasOffset.y -= user.currentPhysicalPositionY - (this.canvasDimensions.h / 2 + BLOCK_HEIGHT / 2);
+            }
+
+            return canvasOffset;
+        },
+
         // TODO: Refactor this entire function
         paint: function (timestamp)
         {
+
             try
             {
                 if (this.forceUserInstantMove)
@@ -413,31 +466,49 @@ const vueApp = new Vue({
                     this.forceUserInstantMove = false;
                 }
 
-                const context = document.getElementById("room-canvas").getContext("2d");
-                context.fillStyle = "#c0c0c0";
-                context.fillRect(0, 0, 721, 511);
+
+                const canvasElement = document.getElementById("room-canvas");
+                const context = canvasElement.getContext("2d");
+
+                this.detectCanvasResize(canvasElement, context);
+
+
+
+                let isRedrawRequired = this.isRedrawRequired
+                    || this.isDraggingCanvas
+                    || Object.values(this.users).find(u => u.checkIfRedrawRequired());
+
+                if (!isRedrawRequired)
+                {
+                    requestAnimationFrame(this.paint);
+                    return;
+                }
+
+                this.isRedrawRequired = false;
 
                 context.fillStyle = this.currentRoom.backgroundColor;
-                context.fillRect(0, 0, 721, 511);
+                context.fillRect(0, 0, this.canvasDimensions.w, this.canvasDimensions.h);
+                
+                const canvasOffset = this.getCanvasOffset();
 
                 // draw background
                 if (!this.currentRoom.backgroundOffset)
                     this.currentRoom.backgroundOffset = { x: 0, y: 0 }
                 this.drawImage(
                     this.currentRoom.backgroundImage,
-                    0 + this.currentRoom.backgroundOffset.x,
-                    511 + this.currentRoom.backgroundOffset.y,
+                    0 + this.currentRoom.backgroundOffset.x + canvasOffset.x,
+                    this.canvasDimensions.h + this.currentRoom.backgroundOffset.y + canvasOffset.y,
                     this.currentRoom.scale
                 );
 
                 const allObjects = this.currentRoom.objects
-                    .map((o) => ({
+                    .map(o => ({
                         o,
                         type: "room-object",
                         priority: o.x + 1 + (this.currentRoom.size.y - o.y),
                     }))
                     .concat(
-                        Object.values(this.users).map((o) => ({
+                        Object.values(this.users).map(o => ({
                             o,
                             type: "user",
                             priority:
@@ -459,8 +530,8 @@ const vueApp = new Vue({
                     {
                         this.drawImage(
                             o.o.image,
-                            o.o.physicalPositionX,
-                            o.o.physicalPositionY,
+                            o.o.physicalPositionX + canvasOffset.x,
+                            o.o.physicalPositionY + canvasOffset.y,
                             this.currentRoom.scale * o.o.scale
                         );
                     } // o.type == "user"
@@ -472,8 +543,8 @@ const vueApp = new Vue({
                             // are done with the correct room's data.
                             this.drawCenteredText(
                                 o.o.name,
-                                o.o.currentPhysicalPositionX + 40,
-                                o.o.currentPhysicalPositionY - 95
+                                (o.o.currentPhysicalPositionX + 40) + canvasOffset.x,
+                                (o.o.currentPhysicalPositionY - 95) + canvasOffset.y
                             );
 
                             let drawFunc;
@@ -490,8 +561,8 @@ const vueApp = new Vue({
 
                             drawFunc(
                                 o.o.getCurrentImage(this.currentRoom),
-                                o.o.currentPhysicalPositionX,
-                                o.o.currentPhysicalPositionY
+                                o.o.currentPhysicalPositionX + canvasOffset.x,
+                                o.o.currentPhysicalPositionY + canvasOffset.y
                             );
                         }
 
@@ -578,6 +649,7 @@ const vueApp = new Vue({
                     u.logicalPositionY,
                     u.direction
                 );
+            this.isRedrawRequired = true;
         },
         sendNewPositionToServer: function (direction)
         {
@@ -614,6 +686,16 @@ const vueApp = new Vue({
                 "focus",
                 () => (this.forceUserInstantMove = true)
             );
+            window.addEventListener('mouseup', e =>
+            {
+                if (this.isDraggingCanvas)
+                {
+                    this.canvasOffset.x += this.canvasDragOffset.x;
+                    this.canvasOffset.y += this.canvasDragOffset.y;
+                    this.isDraggingCanvas = false;
+                }
+                this.isCanvasMousedown = false;
+            });
         },
         toggleInfobox: function ()
         {
@@ -650,6 +732,33 @@ const vueApp = new Vue({
                     event.preventDefault()
                     this.sendNewPositionToServer("down");
                     break;
+            }
+        },
+        handleCanvasMousedown: function (event)
+        {
+            this.isCanvasMousedown = true;
+            this.canvasDragStartPoint = { x: event.offsetX, y: event.offsetY };
+            this.canvasDragOffset = { x: 0, y: 0 };
+        },
+        handleCanvasMousemove: function (event)
+        {
+            if (!this.isCanvasMousedown) return;
+
+            const dragOffset = {
+                x: -(this.canvasDragStartPoint.x - event.offsetX),
+                y: -(this.canvasDragStartPoint.y - event.offsetY)
+            };
+
+            if (!this.isDraggingCanvas &&
+                (Math.sqrt(Math.pow(dragOffset.x, 2) + Math.pow(dragOffset.y, 2)) > 4))
+            {
+                this.isDraggingCanvas = true;
+            }
+
+            if (this.isDraggingCanvas)
+            {
+                this.canvasDragOffset.x = dragOffset.x
+                this.canvasDragOffset.y = dragOffset.y;
             }
         },
         handleMessageInputKeydown: function (event)
