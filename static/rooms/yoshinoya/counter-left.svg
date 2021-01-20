@@ -8,9 +8,9 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="76.108643mm"
-   height="40.697968mm"
-   viewBox="0 0 76.108641 40.697967"
+   width="19.204985mm"
+   height="16.988113mm"
+   viewBox="0 0 19.204984 16.988113"
    version="1.1"
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
@@ -1985,9 +1985,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4040232"
-     inkscape:cx="146.85573"
-     inkscape:cy="126.33783"
+     inkscape:zoom="2.8080464"
+     inkscape:cx="78.443157"
+     inkscape:cy="53.433263"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -2005,7 +2005,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -2013,66 +2013,14 @@
      inkscape:label="レイヤー 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-96.990678,-55.088936)">
-    <g
-       id="g1015"
-       transform="translate(67.905974,-17.750428)">
-      <use
-         height="71.650002"
-         transform="matrix(0.23709857,0,0,0.23709857,85.988361,91.80725)"
-         width="81"
-         xlink:href="#sprite8"
-         id="use78"
-         x="0"
-         y="0" />
-      <use
-         height="71.650002"
-         transform="matrix(-0.23709857,0,0,0.23709857,48.289688,72.839364)"
-         width="81"
-         xlink:href="#sprite8"
-         id="use80"
-         x="0"
-         y="0" />
-      <use
-         height="71.650002"
-         transform="matrix(-0.23709857,0,0,0.23709857,57.773631,77.581335)"
-         width="81"
-         xlink:href="#sprite8"
-         id="use82"
-         x="0"
-         y="0" />
-      <use
-         height="71.650002"
-         transform="matrix(-0.23709857,0,0,0.23709857,67.257574,82.323307)"
-         width="81"
-         xlink:href="#sprite8"
-         id="use84"
-         x="0"
-         y="0" />
-      <use
-         height="71.650002"
-         transform="matrix(-0.23709857,0,0,0.23709857,76.741517,87.065278)"
-         width="81"
-         xlink:href="#sprite8"
-         id="use86"
-         x="0"
-         y="0" />
-      <use
-         height="71.650002"
-         transform="matrix(-0.23709857,0,0,0.23709857,86.22546,91.80725)"
-         width="81"
-         xlink:href="#sprite8"
-         id="use88"
-         x="0"
-         y="0" />
-      <use
-         height="71.150002"
-         transform="matrix(0.23709857,0,0,0.23709857,76.504418,96.66777)"
-         width="81"
-         xlink:href="#sprite9"
-         id="use90"
-         x="0"
-         y="0" />
-    </g>
+     transform="translate(-134.92645,-74.056822)">
+    <use
+       height="71.650002"
+       transform="matrix(-0.23709857,0,0,0.23709857,154.13143,74.056822)"
+       width="81"
+       xlink:href="#sprite8"
+       id="use88"
+       x="0"
+       y="0" />
   </g>
 </svg>
