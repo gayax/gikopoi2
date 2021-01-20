@@ -89,6 +89,13 @@
                         tabindex="-1"></button>
                 </div>
             </div>
+            <button v-on:click="enableGridNumbers = !enableGridNumbers">enableGridNumbers</button>
+            <button v-on:click="currentRoom.originCoordinates.x++">+</button>
+            <button v-on:click="currentRoom.originCoordinates.x--">-</button>
+            x: {{ currentRoom.originCoordinates.x }}
+            <button v-on:click="currentRoom.originCoordinates.y++">+</button>
+            <button v-on:click="currentRoom.originCoordinates.y--">-</button>
+            y: {{ currentRoom.originCoordinates.y }}
             <div v-for="i in [0, 1, 2, 3, 4]">
                 <button v-on:click="currentRoom.objects[i].xOffset++">+</button>
                 <button v-on:click="currentRoom.objects[i].xOffset--">-</button>

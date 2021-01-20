@@ -52,6 +52,8 @@ const vueApp = new Vue({
         canvasOffset: { x: 0, y: 0 },
         canvasDimensions: { w: 0, h: 0 },
 
+        enableGridNumbers: false,
+
         // Possibly redundant data:
         username: "",
         roomid: "admin_st",
@@ -478,11 +480,11 @@ const vueApp = new Vue({
                     || this.isDraggingCanvas
                     || Object.values(this.users).find(u => u.checkIfRedrawRequired());
 
-                if (!isRedrawRequired)
-                {
-                    requestAnimationFrame(this.paint);
-                    return;
-                }
+                // if (!isRedrawRequired)
+                // {
+                //     requestAnimationFrame(this.paint);
+                //     return;
+                // }
 
                 this.isRedrawRequired = false;
 
@@ -570,7 +572,7 @@ const vueApp = new Vue({
                     }
                 }
 
-                if (localStorage.getItem("enableGridNumbers") == "true")
+                if (this.enableGridNumbers)
                 {
                     context.font = "bold 13px Arial, Helvetica, sans-serif";
                     context.textBaseline = "bottom";
