@@ -480,11 +480,11 @@ const vueApp = new Vue({
                     || this.isDraggingCanvas
                     || Object.values(this.users).find(u => u.checkIfRedrawRequired());
 
-                // if (!isRedrawRequired)
-                // {
-                //     requestAnimationFrame(this.paint);
-                //     return;
-                // }
+                if (!isRedrawRequired)
+                {
+                    requestAnimationFrame(this.paint);
+                    return;
+                }
 
                 this.isRedrawRequired = false;
 
