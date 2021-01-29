@@ -96,6 +96,7 @@ io.on("connection", function (socket: any)
             currentRoom = rooms[user.roomId]
             
             user.rtcPeer = new RTCPeer(defaultIceConfig, emitRTCMessage);
+            console.log("Initialised:", user.rtcPeer)
 
             socket.emit("server-update-current-room-state",
                 <RoomStateDto>{
