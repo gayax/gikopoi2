@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 import { defaultRoom } from "./rooms";
 import { Direction } from "./types";
+import { RTCPeer } from "./rtcpeer";
 
 function generateId()
 {
@@ -21,6 +22,7 @@ export class Player
     public lastAction = Date.now();
     public connectionTime = Date.now();
     public disconnectionTime: number | null = null;
+    public rtcPeer: RTCPeer | null = null;
     public mediaStream: MediaStream | null = null;
     public characterId: string;
     public areaId: string;

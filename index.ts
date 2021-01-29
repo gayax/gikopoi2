@@ -52,8 +52,6 @@ io.on("connection", function (socket: any)
     let currentRoom = defaultRoom;
     //let currentStreamSlotId: number | null = null;
 
-    let rtcPeer: RTCPeer = new RTCPeer(defaultIceConfig, emitRTCMessage);
-
     socket.on("disconnect", function ()
     {
         try
@@ -96,6 +94,8 @@ io.on("connection", function (socket: any)
             console.log("userId: " + userId + " name: " + user.name);
 
             currentRoom = rooms[user.roomId]
+            
+            user.rtcPeer = new RTCPeer(defaultIceConfig, emitRTCMessage);
 
             socket.emit("server-update-current-room-state",
                 <RoomStateDto>{
@@ -221,9 +221,11 @@ io.on("connection", function (socket: any)
                 socket.emit("server-not-ok-to-stream", "sorry, someone else is already streaming in this slot")
                 return;
             }
+            
+            console.log("null for some reason:", user.rtcPeer)
 
             openRTCConnection()
-            if (rtcPeer.conn === null) return;
+            if (user.rtcPeer == null || user.rtcPeer.conn == null) return;
 
             //currentStreamSlotId = streamSlotId
             streams[streamSlotId].isActive = true
@@ -237,18 +239,18 @@ io.on("connection", function (socket: any)
             {
                 try
                 {
-                    if (rtcPeer.conn === null) return;
+                    if (user.rtcPeer == null || user.rtcPeer.conn == null) return;
                     user.mediaStream = event.streams[0]
                     streams[streamSlotId].isReady = true
                     io.to(user.areaId + user.roomId).emit("server-update-current-room-streams", streams)
-                    rtcPeer.conn.removeEventListener('track', handleTrack);
+                    user.rtcPeer.conn.removeEventListener('track', handleTrack);
                 }
                 catch (e)
                 {
                     console.error(e.message + " " + e.stack);
                 }
             };
-            rtcPeer.conn.addEventListener('track', handleTrack);
+            user.rtcPeer.conn.addEventListener('track', handleTrack);
             socket.emit("server-ok-to-stream")
         }
         catch (e)
@@ -278,13 +280,13 @@ io.on("connection", function (socket: any)
             const userWhoIsStreaming = getUser(userid)
 
             if (userWhoIsStreaming.mediaStream === null) return;
-
+            
             openRTCConnection()
 
-            if (rtcPeer.conn === null) return;
+            if (user.rtcPeer == null || user.rtcPeer.conn == null) return;
 
             userWhoIsStreaming.mediaStream.getTracks().forEach(track =>
-                rtcPeer.conn!.addTrack(track, userWhoIsStreaming.mediaStream!))
+                user.rtcPeer!.conn!.addTrack(track, userWhoIsStreaming.mediaStream!))
             socket.emit("server-ok-to-take-stream", streamSlotId)
         }
         catch (e)
@@ -302,14 +304,14 @@ io.on("connection", function (socket: any)
             if (userid === null) return;
             const userWhoIsStreaming = getUser(userid)
             if (userWhoIsStreaming.mediaStream === null) return;
-            if (rtcPeer.conn === null) return;
+            if (user.rtcPeer == null || user.rtcPeer.conn == null) return;
 
             const tracks = userWhoIsStreaming.mediaStream.getTracks();
-            rtcPeer.conn.getSenders().forEach((sender: RTCRtpSender) =>
+            user.rtcPeer.conn.getSenders().forEach((sender: RTCRtpSender) =>
             {
                 if (sender === null || sender.track === null) return;
                 if (sender.track && tracks.includes(sender.track))
-                    rtcPeer.conn!.removeTrack(sender)
+                    user.rtcPeer!.conn!.removeTrack(sender)
             });
         }
         catch (e)
@@ -347,8 +349,9 @@ io.on("connection", function (socket: any)
             user.position = { x: door.x, y: door.y }
             if (door.direction !== null) user.direction = door.direction
             user.roomId = targetRoomId
-
-            rtcPeer.close()
+            
+            if (user.rtcPeer != null)
+                user.rtcPeer.close()
 
             socket.emit("server-update-current-room-state",
                 <RoomStateDto>{
@@ -404,10 +407,15 @@ io.on("connection", function (socket: any)
     {
         try
         {
+            
+            console.log("hhuu tho", user.rtcPeer)
             console.log("openRTCConnection()")
-            rtcPeer.open()
-            if (rtcPeer.conn === null) return;
-            rtcPeer.conn.addEventListener('iceconnectionstatechange',
+            if (user.rtcPeer == null) return;
+            console.log("opening")
+            user.rtcPeer.open()
+            if (user.rtcPeer.conn  == null) return;
+            console.log("opened")
+            user.rtcPeer.conn.addEventListener('iceconnectionstatechange',
                 handleIceConnectionStateChange);
         }
         catch (e) { console.error(e.message + " " + e.stack); }
@@ -418,13 +426,13 @@ io.on("connection", function (socket: any)
         try
         {
             console.log(user.id, "handleIceConnectionStateChange()")
-            if (rtcPeer.conn === null) return;
-            const state = rtcPeer.conn.iceConnectionState;
+            if (user.rtcPeer == null || user.rtcPeer.conn == null) return;
+            const state = user.rtcPeer.conn.iceConnectionState;
 
             if (["failed", "disconnected", "closed"].includes(state))
             {
                 console.log(user.id, "rtcPeer.close()")
-                rtcPeer.close()
+                user.rtcPeer.close()
                 clearStream(user)
             }
         }
@@ -445,8 +453,9 @@ io.on("connection", function (socket: any)
     {
         try
         {
+            if (user.rtcPeer == null) return;
             console.log(user.id, "user-rtc-offer")
-            rtcPeer.acceptOffer(offer)
+            user.rtcPeer.acceptOffer(offer)
         }
         catch (e) { console.error(e.message + " " + e.stack); }
     })
@@ -455,8 +464,9 @@ io.on("connection", function (socket: any)
     {
         try
         {
+            if (user.rtcPeer == null) return;
             console.log(user.id, "user-rtc-answer")
-            rtcPeer.acceptAnswer(answer)
+            user.rtcPeer.acceptAnswer(answer)
         }
         catch (e) { console.error(e.message + " " + e.stack); }
     })
@@ -465,8 +475,9 @@ io.on("connection", function (socket: any)
     {
         try
         {
+            if (user.rtcPeer == null) return;
             console.log(user.id, "user-rtc-candidate")
-            rtcPeer.addCandidate(candidate)
+            user.rtcPeer.addCandidate(candidate)
         }
         catch (e) { console.error(e.message + " " + e.stack); }
     })
@@ -626,6 +637,10 @@ function clearStream(user: Player)
         console.log("trying clearStream:", user.areaId, user.roomId)
 
         user.mediaStream = null
+        if (user.rtcPeer != null)
+            user.rtcPeer.close()
+        user.rtcPeer = null;
+        
         const streams = roomStates[user.areaId][user.roomId].streams
         const stream = streams.find(s => s.userId == user.id)
         if (stream)
@@ -820,4 +835,3 @@ restoreState().then(() =>
     console.log("Server running on http://localhost:" + port);
 })
     .catch(console.error)
-
